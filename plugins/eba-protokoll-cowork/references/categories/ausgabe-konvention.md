@@ -141,8 +141,8 @@ erste funktionierende gewinnt:
 **Windows-Produktion**: MS Word ist der bevorzugte Pfad. Wenn Word installiert
 ist, soll PDF-Erzeugung ohne Nutzerinteraktion funktionieren.
 
-Wenn auf Windows kein PDF entsteht, ist das Ergebnis **nicht fertig**. Claude
-Code soll den Fehler aus stderr lesen, denselben Renderbefehl nach
+Wenn auf Windows kein PDF entsteht, ist das Ergebnis **nicht fertig**. Codex
+soll den Fehler aus stderr lesen, denselben Renderbefehl nach
 Selbstheilung erneut versuchen und dem Nutzer erst dann antworten, wenn DOCX
 und PDF vorhanden sind oder ein echter Blocker vorliegt.
 
@@ -170,7 +170,7 @@ und PDF vorhanden sind oder ein echter Blocker vorliegt.
 - Keine frei erfundenen Felder, keine ausgelassenen Header- oder Endblöcke, kein
   Markdown im Projektordner.
 - Unbekannte Markdown-Formate werden nicht generisch gerendert. Wenn der
-  Renderer ein Format ablehnt, muss Claude den passenden EBA-Typ bestimmen
+  Renderer ein Format ablehnt, muss Codex den passenden EBA-Typ bestimmen
   oder bei echtem Formatkonflikt kurz nachfragen.
 
 ## Was beim Fortschreiben anders ist

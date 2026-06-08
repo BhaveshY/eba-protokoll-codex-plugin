@@ -170,7 +170,7 @@ expect(
 
 // ─── Template-faithful output pipeline ───────────────────────────────────
 //
-// Protocol skills must instruct Claude to produce the original QMG source
+// Protocol skills must instruct Codex to produce the original QMG source
 // format, not Markdown. A central reference describes the pipeline; every
 // format skill must cite it.
 
@@ -309,10 +309,12 @@ for (const skillRel of [
 
 const pluginManifest = JSON.parse(read(".codex-plugin/plugin.json"));
 expect(pluginManifest.version === "0.2.7", "plugin.json bumped to 0.2.7");
-const market = JSON.parse(read(".codex-plugin/marketplace.json"));
+const market = JSON.parse(read("../../.agents/plugins/marketplace.json"));
+expect(market.name === "eba-protokoll-codex-plugin", "repo marketplace has the expected Codex marketplace name");
+expect(market.plugins[0].name === pluginManifest.name, "marketplace entry matches plugin.json name");
 expect(
-  market.plugins[0].version === "0.2.7",
-  "marketplace.json plugin entry bumped to 0.2.7",
+  market.plugins[0].source?.source === "local" && market.plugins[0].source?.path === "./plugins/eba-protokoll-cowork",
+  "marketplace entry points at the repo-local Codex plugin path",
 );
 
 // Dispatcher smoke test — verify each example transcript would route to the
