@@ -1,0 +1,20 @@
+{
+  "name": "eba-protokoll-codex-plugin",
+  "interface": {
+    "displayName": "EBA Protokoll Codex Plugin"
+  },
+  "plugins": [
+    {
+      "name": "eba-protokoll-cowork",
+      "source": {
+        "source": "local",
+        "path": "./plugins/eba-protokoll-cowork"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
