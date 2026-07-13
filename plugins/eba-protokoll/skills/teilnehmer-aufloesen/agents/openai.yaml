@@ -1,0 +1,4 @@
+interface:
+  display_name: "Teilnehmer auflösen"
+  short_description: "Sprecher, Firmen und Kürzel auflösen"
+  default_prompt: "Use $teilnehmer-aufloesen to resolve the speakers in this transcript."

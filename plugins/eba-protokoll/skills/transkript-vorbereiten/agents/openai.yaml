@@ -1,0 +1,4 @@
+interface:
+  display_name: "Transkript vorbereiten"
+  short_description: "Transkripte strukturell bereinigen"
+  default_prompt: "Use $transkript-vorbereiten to clean this transcript without changing its meaning."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "EBA-Protokoll erstellen"
+  short_description: "EBA-Protokolle automatisch erstellen"
+  default_prompt: "Use $eba-protokoll to create the correct EBA protocol from this transcript."

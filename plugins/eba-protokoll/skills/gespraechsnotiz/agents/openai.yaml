@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gesprächsnotiz erstellen"
+  short_description: "Kurze EBA-Gesprächsnotizen erstellen"
+  default_prompt: "Use $gespraechsnotiz to create an EBA conversation note from this transcript."

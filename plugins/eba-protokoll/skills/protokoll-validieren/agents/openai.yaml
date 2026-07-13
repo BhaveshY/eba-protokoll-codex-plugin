@@ -1,0 +1,4 @@
+interface:
+  display_name: "EBA-Protokoll validieren"
+  short_description: "EBA-Protokolle vor Ausgabe validieren"
+  default_prompt: "Use $protokoll-validieren to validate this EBA protocol before delivery."

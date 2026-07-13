@@ -1,0 +1,4 @@
+interface:
+  display_name: "Protokollthemen extrahieren"
+  short_description: "Themen, Aufgaben und Beschlüsse extrahieren"
+  default_prompt: "Use $protokoll-themen-extrahieren to structure the topics in this transcript."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Planungsprotokoll LP1-4"
+  short_description: "Planungsprotokolle mit Tracking erstellen"
+  default_prompt: "Use $protokoll-lp1-4 to create an EBA planning protocol with tracking."
