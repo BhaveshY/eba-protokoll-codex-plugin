@@ -20,6 +20,10 @@ codex plugin add eba-protokoll@eba-protokoll-codex-plugin
 
 Start a new Codex thread after installation and ask it to create or continue an EBA protocol from a transcript. Codex selects Gesprächsnotiz, Protokoll-einfach, LP1-4/BIM, or LP5 and can also prepare transcripts, resolve participants, extract topics, and validate a finished record.
 
+Final protocols are never Markdown: Word-based formats produce DOCX + PDF,
+BIM/Excel formats produce XLSX, and continuation workflows additionally keep
+`protokoll-state.json`.
+
 ## Prerequisites
 
 - Python 3 available on PATH.

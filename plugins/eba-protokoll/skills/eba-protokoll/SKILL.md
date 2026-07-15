@@ -95,7 +95,8 @@ Wende folgende Heuristik an (in dieser Reihenfolge, der erste Treffer gewinnt):
 
 3. **Planungsprotokoll LP1-4** (Tracking, mit D/K|B|LN) wenn einer gilt:
    - Es existiert ein Vorprotokoll im Projektordner
-     (`protokolle/<projekt>/protokoll-state.json` oder ältere `protokoll-NN-…md`).
+     (`protokolle/<projekt>/protokoll-state.json` oder ältere
+     `protokoll-NN-<thema>.docx`/`.xlsx`-Ausgaben).
    - Im Transkript fallen **Verweise auf vorherige Besprechungen** (z.B.
      „letzte Woche", „letztes Mal", „aus #08", „LN 02E", „Punkt von letzter
      Woche damit erledigt").
@@ -172,7 +173,8 @@ generischen Sprecherlabels `teilnehmer-aufloesen`.
 ### 5. Optional: Fortschreibung erkennen
 
 Wenn ein vorheriges Protokoll im selben Projektordner existiert (Konvention:
-`protokolle/<projekt>/protokoll-<NN>-…md` oder eine `protokoll-state.json`), gilt die
+`protokolle/<projekt>/protokoll-<NN>-<thema>.docx`/`.xlsx` oder eine
+`protokoll-state.json`), gilt die
 Folgebesprechung als **Fortschreibung**. Verwende dann zusätzlich die Skill
 `protokoll-fortschreiben`, die offene Punkte aus dem Vorprotokoll übernimmt und mit
 dem `E`-Suffix als Ergänzung markiert.

@@ -91,7 +91,7 @@ gesamte Vorprotokoll geparst werden muss.
   ],
 
   // Letztes erstelltes Protokoll (zum Cross-Check).
-  "letztes_protokoll": "2026-03-24_protokoll-11_planungsbespr.md",
+  "letztes_protokoll": "2026-03-24_protokoll-11_planungsbespr.docx",
 
   // Wann zuletzt aktualisiert.
   "aktualisiert_am": "2026-03-24T15:32:18+01:00"

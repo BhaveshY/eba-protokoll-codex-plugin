@@ -71,5 +71,6 @@ Baustellen-/LP5-Anker vorliegt, das LP1-4-Schema (Standard) verwenden.
 Manche Projekte haben Sonder-Kategorien (z.B. „13 Nachhaltigkeit / DGNB", „14 Akustik",
 „15 Sicherheit & Gesundheit"). Wenn das Transkript klar auf eine solche Sonder-Kategorie
 zeigt und sie noch nicht im Schema ist, **die Kategorie als nächste freie Nummer aufnehmen**
-und in der Datei `protokoll-state.json` (siehe `scripts/protokoll-state.md`) ergänzen,
+und in der Datei `protokoll-state.json` (siehe
+`../workflows/protokoll-state.md`) ergänzen,
 damit sie in allen Folgeprotokollen erhalten bleibt.

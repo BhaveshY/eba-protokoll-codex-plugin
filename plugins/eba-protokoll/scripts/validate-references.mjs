@@ -190,6 +190,9 @@ expect(
 
 expectFile("scripts/render_protokoll.py");
 expectFile("references/categories/ausgabe-konvention.md");
+expectFile("references/categories/dateinamen-konvention.md");
+expectFile("references/workflows/protokoll-state.md");
+expect(!existsSync(join(repoRoot, "scripts/protokoll-state.md")), "state schema is not misplaced under scripts");
 expectFile("references/templates/qmg/QMG-024-141_ORG-GESPRAECHSNOTIZ_230202-D.docx");
 expectFile("references/templates/qmg/QMG-024-141_ORG-PK-LP1-4-MA_230227-A.docx");
 expectFile("references/templates/qmg/QMG-024-141_ORG-PK-LP5-MA_230202-B.docx");
@@ -230,6 +233,27 @@ expect(
     ausgabeKonvention.includes("nicht fest auf `/tmp`"),
   "ausgabe-konvention documents cross-platform temporary Markdown paths",
 );
+expect(
+  ausgabeKonvention.includes("Gesprächsnotiz | DOCX + PDF") &&
+    ausgabeKonvention.includes("BIM-Protokoll | XLSX") &&
+    ausgabeKonvention.includes("protokoll-state.json"),
+  "ausgabe-konvention locks the format-specific deliverables",
+);
+for (const deadFlag of ["--keep-md", "--no-xlsx", "--pdf-optional"]) {
+  expect(!ausgabeKonvention.includes(deadFlag), `ausgabe-konvention does not document dead flag ${deadFlag}`);
+}
+
+const dateinamenKonvention = read("references/categories/dateinamen-konvention.md");
+expect(
+  dateinamenKonvention.includes("Word-Ursprung: dieselbe Dateibasis als `.docx` und `.pdf`") &&
+    dateinamenKonvention.includes("Excel-Ursprung") &&
+    dateinamenKonvention.includes("`.xlsx`"),
+  "date naming maps basenames to DOCX/PDF or XLSX",
+);
+expect(
+  !/^.*protokolle\/.*\.md.*$/m.test(dateinamenKonvention),
+  "date naming does not show Markdown as a project deliverable",
+);
 
 const renderer = read("scripts/render_protokoll.py");
 const requirements = read("scripts/requirements.txt");
@@ -244,9 +268,18 @@ expect(
   "requirements include openpyxl for official QMG XLSX output",
 );
 expect(
-  renderer.includes("pdf_required = sys.platform == \"win32\""),
-  "renderer treats PDF as required on Windows",
+  renderer.includes("pdf_required = not args.no_pdf"),
+  "renderer requires PDF unless DOCX-only was explicitly requested",
 );
+expect(
+  renderer.includes("def _remove_markdown_intermediate") &&
+    renderer.includes("return 6") &&
+    renderer.includes("md_path.unlink()"),
+  "renderer makes Markdown cleanup part of successful completion",
+);
+for (const deadFlag of ["--keep-md", "--no-xlsx", "--pdf-optional"]) {
+  expect(!renderer.includes(deadFlag), `renderer contains no dead debug flag ${deadFlag}`);
+}
 expect(
   renderer.includes("GESPRAECHSNOTIZ_TEMPLATE") &&
     renderer.includes("PROTOKOLL_EINFACH_TEMPLATE") &&

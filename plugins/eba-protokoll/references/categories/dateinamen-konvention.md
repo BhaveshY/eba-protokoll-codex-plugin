@@ -1,12 +1,21 @@
 # EBA-Dateinamen-Konvention für Protokolle
 
-EBA-Protokolle folgen einer projektübergreifenden Dateinamenskonvention. Sie ist
-in Echt-Projekten konsistent verwendet (siehe `references/examples/`-Dateien).
+EBA-Protokolle folgen einer projektübergreifenden Dateinamenskonvention. Der
+Name wird zunächst als **Dateibasis ohne Endung** gebildet. Der Renderer hängt
+anschließend ausschließlich die Endung des festgelegten QMG-Ausgabeformats an:
 
-## Grundschema
+- Word-Ursprung: dieselbe Dateibasis als `.docx` und `.pdf`.
+- Excel-Ursprung (BIM oder ausdrücklich gewählte Excel-Variante): `.xlsx`.
+- Fortschreibung: zusätzlich `protokoll-state.json`.
+
+Eine `.md`-Datei ist niemals ein fertiges Protokoll. Sie darf nur als
+temporärer interner Renderer-Eingang existieren und wird nach erfolgreicher
+Ausgabe gelöscht.
+
+## Grundschema der Dateibasis
 
 ```
-<PrjNr>-<PrjKZ>-<FirmaKZ>[-<Bereich>]-<Typ>-<JJMMTT>[-<Suffix>].md
+<PrjNr>-<PrjKZ>-<FirmaKZ>[-<Bereich>]-<Typ>-<JJMMTT>[-<Suffix>]
 ```
 
 | Feld | Beschreibung | Beispiele |
@@ -14,79 +23,76 @@ in Echt-Projekten konsistent verwendet (siehe `references/examples/`-Dateien).
 | `<PrjNr>` | EBA-Projektnummer (3-stellig) | `553`, `549`, `541` |
 | `<PrjKZ>` | Projekt-Kurzname (Großbuchstaben) | `WIL`, `VTS`, `MAR` |
 | `<FirmaKZ>` | Firma-Kürzel des Erstellers (in der Regel `EBA`) | `EBA` |
-| `<Bereich>` | _optional_, z.B. fachlicher Schwerpunkt | `BIM`, `TWP`, `BL` |
-| `<Typ>` | Typ-Kürzel des Protokolls — siehe unten | `PK`, `PLB-PK`, `JF` |
+| `<Bereich>` | optionaler fachlicher Schwerpunkt | `BIM`, `TWP`, `BL` |
+| `<Typ>` | Typ-Kürzel des Protokolls | `PK`, `PLB-PK`, `JF` |
 | `<JJMMTT>` | Datum 2-stellig: Jahr, Monat, Tag | `260324` für 24.03.2026 |
-| `<Suffix>` | _optional_, z.B. `g-KI` (geprüft / KI-erstellt), `v2`, `Entwurf` | `g-KI` |
+| `<Suffix>` | optional, z.B. geprüft/KI-erstellt oder Version | `g-KI`, `v2`, `Entwurf` |
 
-## Typ-Kürzel
+## Typ-Kürzel und Ausgabeformat
 
-| Kürzel | Format | Beschreibung |
-|--------|--------|--------------|
-| `GN`   | Gesprächsnotiz | Kurze formlose Notiz (`gespraechsnotiz`) |
-| `PK`   | Protokoll | Generelles Protokoll |
-| `PLB-PK` | Planungsbesprechungs-Protokoll | LP1-4-Tracking-Protokoll (`protokoll-lp1-4`) |
-| `BIM-PK-JF-NN` | BIM-Koordinations-Jour-Fixe Nr. NN | LP1-4-Tracking, BIM-Variante |
-| `BL-PK` | Bauleitungs-Protokoll | LP5-Tracking-Protokoll (`protokoll-lp5`) |
-| `WS-PK` | Workshop-Protokoll | Einfaches Protokoll (`protokoll-einfach`) |
+| Kürzel | Format | Finale Datei(en) |
+|--------|--------|------------------|
+| `GN` | Gesprächsnotiz (`gespraechsnotiz`) | DOCX + PDF |
+| `PK` | Generelles Protokoll | DOCX + PDF |
+| `PLB-PK` | Planungsbesprechung (`protokoll-lp1-4`) | DOCX + PDF |
+| `BIM-PK-JF-NN` | BIM-Koordinations-Jour-Fixe Nr. NN | XLSX |
+| `BL-PK` | Bauleitung (`protokoll-lp5`) | DOCX + PDF |
+| `WS-PK` | Workshop (`protokoll-einfach`) | DOCX + PDF |
 
-## Beispiele aus echten EBA-Projekten
+## Beispiele
 
 ```
-553-WIL-EBA-PLB-PK-260324.md           — Planungsbesprechung 24.03.26 (LP1-4)
-553-WIL-EBA_BIM-PK-JF-07_260331-g-KI.md — BIM-Jour-Fixe 07, 31.03.26 (geprüft, KI)
-549-VTS-EBA-PK-240112.md                — Generisches Protokoll 12.01.24
-541-MAR-EBA-BL-PK-260415.md             — Bauleitungs-Protokoll 15.04.26 (LP5)
+553-WIL-EBA-PLB-PK-260324.docx
+553-WIL-EBA-PLB-PK-260324.pdf
+553-WIL-EBA_BIM-PK-JF-07_260331-g-KI.xlsx
+549-VTS-EBA-PK-240112.docx
+549-VTS-EBA-PK-240112.pdf
+541-MAR-EBA-BL-PK-260415.docx
+541-MAR-EBA-BL-PK-260415.pdf
 ```
 
 ## Mapping zur Plugin-Skill
 
 | Plugin-Skill | Default-Typ-Kürzel im Dateinamen |
 |--------------|----------------------------------|
-| `gespraechsnotiz`   | `GN` |
-| `protokoll-einfach` | `WS-PK` (Workshop / einfach) |
-| `protokoll-lp1-4`   | `PLB-PK` (Planungsbesprechung) |
+| `gespraechsnotiz` | `GN` |
+| `protokoll-einfach` | `WS-PK` |
+| `protokoll-lp1-4` | `PLB-PK` |
 | `protokoll-lp1-4` (BIM-Variante) | `BIM-PK-JF-NN` |
-| `protokoll-lp5`     | `BL-PK` |
+| `protokoll-lp5` | `BL-PK` |
 
-## Vereinfachte Variante (Default des Plugins)
+## Vereinfachte Dateibasis
 
-Wenn der Nutzer keine EBA-Dateinamen-Konvention erzwingt, verwendet das Plugin
-den lesbareren Markdown-Namen:
+Wenn der Nutzer keine EBA-Dateinamenskonvention verlangt, verwendet das Plugin:
 
 ```
-<JJJJ-MM-TT>_<projekt-kurzname>_<typ>.md
+<JJJJ-MM-TT>_<projekt-kurzname>_<typ>
 ```
 
-z.B.:
+Beispiele der finalen Dateien:
+
 ```
-2026-03-24_WIL_planungsbesprechung-11.md
-2026-03-31_WIL_bim-jf-07.md
+2026-03-24_WIL_planungsbesprechung-11.docx
+2026-03-24_WIL_planungsbesprechung-11.pdf
+2026-03-31_WIL_bim-jf-07.xlsx
 ```
 
-Beide Namensschemata sind gültig. Das EBA-Schema ist die offizielle Konvention für
-abgelegte Dokumente; das vereinfachte Schema ist für die schnelle Benutzung im
-Plugin-Workflow gedacht.
+Beide Namensschemata sind gültig. Das EBA-Schema ist die offizielle Konvention
+für abgelegte Dokumente; das vereinfachte Schema ist der Plugin-Default.
 
 ## Verzeichnisstruktur
-
-Innerhalb von `protokolle/<projekt>/` werden alle Protokolle eines Projekts
-abgelegt:
 
 ```
 protokolle/
 └── 553-WIL/
-    ├── 553-WIL-EBA-PLB-PK-260224.md       — Besprechung 10
-    ├── 553-WIL-EBA-PLB-PK-260324.md       — Besprechung 11
-    ├── 553-WIL-EBA_BIM-PK-JF-07_260331.md — BIM-JF 07
-    └── protokoll-state.json               — Zustand zwischen Besprechungen
+    ├── 553-WIL-EBA-PLB-PK-260224.docx
+    ├── 553-WIL-EBA-PLB-PK-260224.pdf
+    ├── 553-WIL-EBA-PLB-PK-260324.docx
+    ├── 553-WIL-EBA-PLB-PK-260324.pdf
+    ├── 553-WIL-EBA_BIM-PK-JF-07_260331.xlsx
+    └── protokoll-state.json
 ```
 
-## Nutzung im Plugin
-
-Wenn der Nutzer EBA-Dateinamen wünscht, kann er das beim Aufruf so ausdrücken:
-
-> „Speichere als EBA-Dateiname" / „use EBA filename"
-
-Das Plugin erzeugt dann den Namen nach diesem Schema. Default bleibt das
-einfachere `<JJJJ-MM-TT>_…`.
+Wenn der Nutzer „Speichere als EBA-Dateiname“ oder „use EBA filename“ sagt,
+bildet das Plugin die offizielle Dateibasis. Die Endung wird nie aus dem
+Zwischenformat übernommen, sondern folgt immer dem gewählten QMG-Format.

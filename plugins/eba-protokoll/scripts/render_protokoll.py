@@ -20,15 +20,15 @@ Output files are written next to <markdown_path>:
     <basename>.docx + <basename>.pdf (Word-origin formats)
     <basename>.xlsx (Excel-origin formats)
 
-The Markdown intermediate at <markdown_path> is removed on success unless
---keep-md is passed.
+The Markdown intermediate at <markdown_path> is always removed on success.
 
 Exit codes:
-    0 success (DOCX written; PDF written or explicitly optional)
+    0 success (the format-specific deliverables were written)
     2 markdown could not be parsed
     3 docx generation failed
-    4 PDF generation failed on Windows
+    4 required PDF generation failed
     5 XLSX generation failed
+    6 Markdown intermediate could not be removed
 """
 
 from __future__ import annotations
@@ -835,17 +835,11 @@ def _is_tracking_excel_format(parsed: ParsedMd) -> bool:
     return parsed.detected_format in {
         "protokoll-bim",
         "protokoll-lp1-4-excel",
-        "protokoll-lp1-4-xlsx",
-        "protokoll-tracking-excel",
-        "protokoll-tracking-xlsx",
     }
 
 
 def _is_simple_excel_format(parsed: ParsedMd) -> bool:
-    return parsed.detected_format in {
-        "protokoll-einfach-excel",
-        "protokoll-einfach-xlsx",
-    }
+    return parsed.detected_format == "protokoll-einfach-excel"
 
 
 def _is_xlsx_only_format(parsed: ParsedMd) -> bool:
@@ -1326,14 +1320,13 @@ def _render_tracking_excel_template(parsed: ParsedMd, out_path: Path) -> None:
     wb.save(str(out_path))
 
 
-def render_to_xlsx(parsed: ParsedMd, out_path: Path) -> bool:
+def render_to_xlsx(parsed: ParsedMd, out_path: Path) -> None:
     if _is_simple_excel_format(parsed):
         _render_simple_excel_template(parsed, out_path)
-        return True
-    if not _is_tracking_excel_format(parsed):
-        return False
-    _render_tracking_excel_template(parsed, out_path)
-    return True
+    elif _is_tracking_excel_format(parsed):
+        _render_tracking_excel_template(parsed, out_path)
+    else:
+        raise ValueError(f"Unsupported XLSX format: {parsed.detected_format}")
 
 
 # ─── DOCX rendering ────────────────────────────────────────────────────────
@@ -1513,22 +1506,20 @@ def render_to_pdf(docx_path: Path, pdf_path: Path) -> bool:
 # ─── CLI ───────────────────────────────────────────────────────────────────
 
 
+def _remove_markdown_intermediate(md_path: Path) -> bool:
+    try:
+        md_path.unlink()
+    except OSError as exc:
+        sys.stderr.write(f"Could not remove Markdown intermediate {md_path}: {exc}\n")
+        return False
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("md_path", type=Path, help="Markdown file to render")
     ap.add_argument("--format", default=None, help="Force format (overrides auto-detect)")
     ap.add_argument("--no-pdf", action="store_true", help="Skip PDF rendering")
-    ap.add_argument(
-        "--no-xlsx",
-        action="store_true",
-        help="Skip XLSX generation for Excel-origin formats (debug only)",
-    )
-    ap.add_argument(
-        "--pdf-optional",
-        action="store_true",
-        help="Do not fail if PDF conversion is unavailable on Windows",
-    )
-    ap.add_argument("--keep-md", action="store_true", help="Don't delete the MD intermediate")
     ap.add_argument(
         "--out-dir",
         type=Path,
@@ -1553,24 +1544,14 @@ def main(argv: list[str] | None = None) -> int:
     xlsx_path = out_dir / (md_path.stem + ".xlsx")
 
     if _is_xlsx_only_format(parsed):
-        if args.no_xlsx:
-            sys.stderr.write(
-                f"Format {parsed.detected_format} is an Excel-origin QMG format; "
-                "--no-xlsx would leave no deliverable.\n"
-            )
-            return 5
         try:
-            if not render_to_xlsx(parsed, xlsx_path):
-                raise ValueError(f"Unsupported XLSX format: {parsed.detected_format}")
+            render_to_xlsx(parsed, xlsx_path)
         except Exception as exc:
             sys.stderr.write(f"XLSX render failed: {exc}\n")
             return 5
 
-        if not args.keep_md:
-            try:
-                md_path.unlink()
-            except OSError:
-                pass
+        if not _remove_markdown_intermediate(md_path):
+            return 6
 
         print(f"XLSX: {xlsx_path}")
         print(f"Format: {parsed.detected_format}")
@@ -1582,45 +1563,26 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.write(f"DOCX render failed: {exc}\n")
         return 3
 
-    xlsx_ok = False
-    if not args.no_xlsx:
-        try:
-            xlsx_ok = render_to_xlsx(parsed, xlsx_path)
-        except Exception as exc:
-            sys.stderr.write(f"XLSX render failed: {exc}\n")
-            return 5
-
     pdf_ok = False
     if not args.no_pdf:
         pdf_ok = render_to_pdf(docx_path, pdf_path)
 
-    pdf_required = sys.platform == "win32" and not args.no_pdf and not args.pdf_optional
+    pdf_required = not args.no_pdf
     if pdf_required and not pdf_ok:
         sys.stderr.write(
-            "PDF render failed on Windows. The renderer already attempted "
-            "user-local dependency bootstrap for pywin32 and MS Word COM export. "
-            "Ensure Microsoft Word can open normally in this Windows user account, "
-            "then rerun the same command.\n"
+            "Required PDF render failed. On Windows, the renderer already attempted "
+            "the user-local pywin32 bootstrap and MS Word COM export; ensure Word "
+            "can open normally. On macOS/Linux, install or repair one of the "
+            "document converters listed in ausgabe-konvention.md, then rerun.\n"
         )
         return 4
 
-    if not args.keep_md:
-        try:
-            md_path.unlink()
-        except OSError:
-            pass
+    if not _remove_markdown_intermediate(md_path):
+        return 6
 
     print(f"DOCX: {docx_path}")
-    if xlsx_ok:
-        print(f"XLSX: {xlsx_path}")
     if pdf_ok:
         print(f"PDF:  {pdf_path}")
-    elif not args.no_pdf:
-        print(
-            "PDF:  (skipped — no converter available in this environment. "
-            "On Windows this would be a hard failure unless --pdf-optional "
-            "is used.)"
-        )
     print(f"Format: {parsed.detected_format}")
     return 0
 

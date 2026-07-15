@@ -43,7 +43,8 @@ generischen Sprecherlabels `../../references/workflows/teilnehmer-aufloesung.md`
 ### 2. Vorprotokoll prüfen (wenn vorhanden)
 
 Wenn ein vorheriges Protokoll im selben Projektordner existiert:
-`protokolle/<projekt>/protokoll-NN-…md` oder `protokolle/<projekt>/protokoll-state.json`.
+`protokolle/<projekt>/protokoll-NN-<thema>.docx`/`.xlsx` oder
+`protokolle/<projekt>/protokoll-state.json`.
 
 → Lies das vorherige Protokoll und/oder den State.
 → **Folge dann der Skill `protokoll-fortschreiben`**, statt von Grund auf neu zu
@@ -221,7 +222,7 @@ Volle Pipeline-Beschreibung:
 `../../references/categories/ausgabe-konvention.md`.
 
 Aktualisiere die State-Datei `protokolle/<projekt>/protokoll-state.json` (siehe
-`../../scripts/protokoll-state.md` für das Format) — sie enthält:
+`../../references/workflows/protokoll-state.md` für das Format) — sie enthält:
 
 - `projekt`: Projektname und -nummer.
 - `dk_schema`: Liste der projektspezifisch genutzten D/K-Kategorien.

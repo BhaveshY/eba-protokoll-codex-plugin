@@ -57,6 +57,29 @@ TRACKING_XLSX_EXAMPLES = {
 XLSX_ONLY_EXAMPLES = TRACKING_XLSX_EXAMPLES
 
 
+def output_contract_checks(
+    out_dir: Path,
+    stdout: str,
+    expected_suffixes: set[str],
+    label: str,
+) -> list[str]:
+    failures: list[str] = []
+    if not out_dir.is_dir():
+        return [f"{label}: output directory was not created"]
+    actual_suffixes = {path.suffix for path in out_dir.iterdir() if path.is_file()}
+    if actual_suffixes != expected_suffixes:
+        failures.append(
+            f"{label}: expected only {sorted(expected_suffixes)}, got {sorted(actual_suffixes)}"
+        )
+    if ".md" in actual_suffixes or "MD:" in stdout or "Markdown:" in stdout:
+        failures.append(f"{label}: Markdown leaked into the final output contract")
+    expected_labels = {".docx": "DOCX:", ".pdf": "PDF:", ".xlsx": "XLSX:"}
+    for suffix, output_label in expected_labels.items():
+        if (suffix in expected_suffixes) != (output_label in stdout):
+            failures.append(f"{label}: stdout label {output_label} does not match artifacts")
+    return failures
+
+
 def read_docx_text(path: Path) -> str:
     doc = Document(str(path))
     parts: list[str] = [p.text for p in doc.paragraphs]
@@ -388,6 +411,7 @@ def render_example(example: str, required_text: list[str]) -> list[str]:
         docx_path = out_dir / f"{md_path.stem}.docx"
         xlsx_path = out_dir / f"{md_path.stem}.xlsx"
         if example in XLSX_ONLY_EXAMPLES:
+            failures.extend(output_contract_checks(out_dir, result.stdout, {".xlsx"}, example))
             if docx_path.exists():
                 failures.append(f"{example}: Excel-origin format unexpectedly wrote DOCX")
             if not xlsx_path.exists():
@@ -405,6 +429,7 @@ def render_example(example: str, required_text: list[str]) -> list[str]:
             failures.extend(xlsx_template_checks(xlsx_path, example))
             return failures
 
+        failures.extend(output_contract_checks(out_dir, result.stdout, {".docx"}, example))
         if not docx_path.exists():
             failures.append(f"{example}: DOCX was not written")
             return failures
@@ -472,6 +497,18 @@ def forced_excel_formats() -> list[str]:
                     f"{result.returncode}: {result.stderr.strip()}"
                 )
                 continue
+            if md_path.exists():
+                failures.append(
+                    f"{example} forced {forced_format}: markdown intermediate was not deleted"
+                )
+            failures.extend(
+                output_contract_checks(
+                    out_dir,
+                    result.stdout,
+                    {".xlsx"},
+                    f"{example} forced {forced_format}",
+                )
+            )
             docx_path = out_dir / f"{md_path.stem}.docx"
             xlsx_path = out_dir / f"{md_path.stem}.xlsx"
             if docx_path.exists():
@@ -551,6 +588,24 @@ def paths_with_spaces_supported() -> list[str]:
             failures.append("paths with spaces: DOCX was not written")
         if md_path.exists():
             failures.append("paths with spaces: markdown intermediate was not deleted")
+        failures.extend(
+            output_contract_checks(out_dir, result.stdout, {".docx"}, "paths with spaces")
+        )
+    return failures
+
+
+def removed_debug_flags_rejected() -> list[str]:
+    failures: list[str] = []
+    for flag in ["--keep-md", "--no-xlsx", "--pdf-optional"]:
+        result = subprocess.run(
+            [sys.executable, str(RENDERER), "placeholder.md", flag],
+            cwd=str(REPO_ROOT),
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        if result.returncode != 2 or "unrecognized arguments" not in result.stderr:
+            failures.append(f"removed flag {flag}: renderer still accepts the dead debug path")
     return failures
 
 
@@ -598,6 +653,7 @@ def main() -> int:
     failures.extend(forced_excel_formats())
     failures.extend(unknown_format_rejected())
     failures.extend(paths_with_spaces_supported())
+    failures.extend(removed_debug_flags_rejected())
 
     if failures:
         print(f"Render smoke test failed with {len(failures)} issue(s):")

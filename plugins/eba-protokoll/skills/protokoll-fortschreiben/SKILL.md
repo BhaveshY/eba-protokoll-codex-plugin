@@ -45,10 +45,12 @@ Vorprotokoll auffindbar sind, ist das ein echter Blocker.
 
 ```
 protokolle/<projekt>/protokoll-state.json
-protokolle/<projekt>/<jjjj-mm-tt>_protokoll-NN_<thema>.md   # neuestes vorheriges
+protokolle/<projekt>/<jjjj-mm-tt>_protokoll-NN_<thema>.docx # neuestes Word-Protokoll
+protokolle/<projekt>/<jjjj-mm-tt>_protokoll-NN_<thema>.xlsx # neuestes Excel-Protokoll
 ```
 
-Lies die State-Datei (siehe `../../scripts/protokoll-state.md` für das Schema). Sie enthält:
+Lies die State-Datei (siehe `../../references/workflows/protokoll-state.md` für
+das Schema). Sie enthält:
 
 - `projekt`: Name + Nummer.
 - `dk_schema`: aktuelle Liste der genutzten D/K-Kategorien.
@@ -193,7 +195,7 @@ Volle Pipeline-Beschreibung:
 
 ### 9. Optionale „Ausblenden"-Logik
 
-Erledigte Punkte aus früheren Besprechungen können in der Markdown-Ausgabe
+Erledigte Punkte aus früheren Besprechungen können im internen Zwischenstand
 optional **ausgeblendet** werden, um das Protokoll lesbarer zu machen. Standard:
 ab Protokoll Nr. 2 alle erledigten Punkte aus Besprechungen `B < B_neu - 1`
 ausblenden, in einem zusätzlichen „Archiv"-Abschnitt am Ende des Protokolls auflisten.

@@ -92,16 +92,14 @@ python3 "<plugin-root>/scripts/render_protokoll.py" \
 Auf Windows kann statt `python3` derselbe Befehl mit `python` oder `py -3`
 ausgeführt werden, wenn `python3` nicht registriert ist.
 
-Wichtige Flags:
+Unterstützte Flags:
 
 - `--no-pdf` — DOCX-only, PDF-Schritt überspringen.
-- `--no-xlsx` — nur für Debugging. Bei Excel-Ursprungsvorlagen bleibt dann kein
-  Enddokument übrig und der Renderer bricht ab.
-- `--keep-md` — nur für Debugging: behält das MD-Zwischenformat.
 - `--out-dir <pfad>` — Zielverzeichnis (Default: neben dem MD).
 - `--format <name>` — überschreibt die Auto-Erkennung
   (`gespraechsnotiz` / `protokoll-einfach` / `protokoll-lp1-4` /
-  `protokoll-bim` / `protokoll-lp5`).
+  `protokoll-bim` / `protokoll-lp5`; bei ausdrücklich verlangter QMG-
+  Excel-Variante `protokoll-einfach-excel` oder `protokoll-lp1-4-excel`).
 
 ### 3. Ausgabe an den Nutzer
 
@@ -109,7 +107,6 @@ Der Renderer gibt die finalen Pfade auf stdout aus, z.B. Word-Ursprung:
 
 ```
 DOCX: protokolle/553-WIL/2026-03-24_planungsbesprechung-12.docx
-XLSX: protokolle/553-WIL/2026-03-24_planungsbesprechung-12.xlsx
 PDF:  protokolle/553-WIL/2026-03-24_planungsbesprechung-12.pdf
 Format: protokoll-lp1-4
 ```
@@ -121,11 +118,9 @@ XLSX: protokolle/553-WIL/2026-03-31_bim-pk-jf-07.xlsx
 Format: protokoll-bim
 ```
 
-Falls bei einem Word-Ursprungsformat die PDF-Zeile lautet
-`(skipped — no converter found ...)`, hat das System keinen PDF-Konverter. Auf
-Windows ist das ein Fehlerzustand, den Codex intern beheben soll
-(Renderer erneut ausführen, Word/COM-Fehler prüfen), nicht eine Aufgabe für den
-Nutzer.
+Wenn bei einem Word-Ursprungsformat kein PDF-Konverter verfügbar ist, endet der
+Renderer mit Fehlercode 4. Ein Lauf ohne PDF gilt nur dann als erfolgreich, wenn
+der Nutzer ausdrücklich DOCX-only verlangt und Codex `--no-pdf` setzt.
 
 ## PDF-Konverter pro Plattform
 
@@ -141,12 +136,31 @@ erste funktionierende gewinnt:
 | macOS (dev) | Pages via osascript | nur Fallback für Entwicklung |
 
 **Windows-Produktion**: MS Word ist der bevorzugte Pfad. Wenn Word installiert
-ist, soll PDF-Erzeugung ohne Nutzerinteraktion funktionieren.
+ist, soll PDF-Erzeugung ohne Nutzerinteraktion funktionieren. Auch auf macOS und
+Linux ist PDF standardmäßig verpflichtend; `--no-pdf` ist ausschließlich die
+bewusste DOCX-only-Ausnahme.
 
 Wenn auf Windows kein PDF entsteht, ist das Ergebnis **nicht fertig**. Codex
 soll den Fehler aus stderr lesen, denselben Renderbefehl nach
 Selbstheilung erneut versuchen und dem Nutzer erst dann antworten, wenn DOCX
 und PDF vorhanden sind oder ein echter Blocker vorliegt.
+
+## Verbindliche Ausgabezuordnung
+
+| Protokolltyp | Finale Ausgabe |
+|--------------|----------------|
+| Gesprächsnotiz | DOCX + PDF |
+| Protokoll-einfach | DOCX + PDF |
+| LP1-4 / Planungsprotokoll | DOCX + PDF |
+| LP5 / Bauleitungsprotokoll | DOCX + PDF |
+| BIM-Protokoll | XLSX |
+| ausdrücklich gewählte QMG-Excel-Variante | XLSX |
+
+Bei einer Fortschreibung kommt `protokoll-state.json` hinzu. Codex meldet und
+verlinkt ausschließlich diese finalen Dateien. Der temporäre `.md`-Pfad wird
+weder als Ergebnis genannt noch in den Projektordner kopiert. Nach erfolgreichem
+Rendern muss er gelöscht sein; kann der Renderer ihn nicht löschen, endet er mit
+einem Fehler statt einen scheinbar erfolgreichen Lauf zu melden.
 
 ## Qualitätsanspruch
 
@@ -196,6 +210,6 @@ nächsten Lauf.
   Pflicht, außer der Nutzer verlangt ausdrücklich DOCX-only.
 - ❌ Den Renderer überspringen, wenn nur DOCX gefordert ist — auch dann via
   `--no-pdf` aufrufen, damit die Konvention konsistent bleibt.
-- ❌ `--keep-md` standardmäßig setzen — nur bei Debugging.
+- ❌ Das temporäre Markdown behalten, verlinken oder als Ergebnis ausgeben.
 - ❌ Unbekannte Inhalte mit einem freien DOCX-Layout ausgeben — nur unterstützte
   QMG-Template-Pfade sind zulässig.
