@@ -147,12 +147,12 @@ Schritte:
 
 3. Rufe den Renderer auf:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-lp5-<datum>-<projekt>.md" \
-     --format protokoll-lp5 \
-     --out-dir "protokolle/<projekt>/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-lp5-<datum>-<projekt>.md" --format protokoll-lp5 --out-dir "protokolle/<projekt>/"
    ```
+
+   Unter Windows bei Bedarf `python` durch `py -3` ersetzen; auf macOS/Linux
+   `python3` verwenden.
 
 4. Der Renderer schreibt
    `protokolle/<projekt>/eba-protokoll-lp5-<datum>-<projekt>.docx` plus

@@ -192,12 +192,12 @@ Schritte:
 
 3. Rufe den Renderer auf:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-lp1-4-<datum>-<projekt>.md" \
-     --format protokoll-lp1-4 \
-     --out-dir "protokolle/<projekt>/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-lp1-4-<datum>-<projekt>.md" --format protokoll-lp1-4 --out-dir "protokolle/<projekt>/"
    ```
+
+   Unter Windows bei Bedarf `python` durch `py -3` ersetzen; auf macOS/Linux
+   `python3` verwenden.
 
    Für BIM-Koordinationen `--format protokoll-bim` verwenden; das ist ein
    Excel-Ursprungsformat und schreibt nur `.xlsx`.
@@ -205,11 +205,8 @@ Schritte:
    Wenn der Nutzer für ein reguläres LP1-4-Protokoll ausdrücklich die
    QMG-Excel-Variante verlangt, verwende:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-lp1-4-<datum>-<projekt>.md" \
-     --format protokoll-lp1-4-excel \
-     --out-dir "protokolle/<projekt>/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-lp1-4-<datum>-<projekt>.md" --format protokoll-lp1-4-excel --out-dir "protokolle/<projekt>/"
    ```
 
 4. Der Renderer schreibt

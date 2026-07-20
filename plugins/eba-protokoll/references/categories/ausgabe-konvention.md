@@ -73,24 +73,21 @@ aufgelöst wird. Standard-Hinweistexte
 
 ### 2. Renderer aufrufen
 
-Führe das folgende Bash-Kommando aus:
+Führe den folgenden plattformgerechten Einzeiler aus:
 
-```bash
-python3 "<plugin-root>/scripts/render_protokoll.py" \
-  "<temp-dir>/eba-<format>-<datum>-<kuerzel>.md" \
-  --out-dir "protokolle/<projekt>/"
+```powershell
+python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-<format>-<datum>-<kuerzel>.md" --out-dir "protokolle/<projekt>/"
 ```
 
 Ohne projekt-Unterordner:
 
-```bash
-python3 "<plugin-root>/scripts/render_protokoll.py" \
-  "<temp-dir>/eba-<format>-<datum>-<kuerzel>.md" \
-  --out-dir "protokolle/"
+```powershell
+python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-<format>-<datum>-<kuerzel>.md" --out-dir "protokolle/"
 ```
 
-Auf Windows kann statt `python3` derselbe Befehl mit `python` oder `py -3`
-ausgeführt werden, wenn `python3` nicht registriert ist.
+Die Einzeiler funktionieren direkt in Windows PowerShell. Wenn `python` dort
+nicht registriert ist, `python` durch `py -3` ersetzen. Auf macOS/Linux
+`python3` verwenden. Keine Bash-Zeilenfortsetzung (`\`) in PowerShell ausführen.
 
 Unterstützte Flags:
 

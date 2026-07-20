@@ -128,21 +128,18 @@ Schritte:
 
 3. Rufe den Renderer auf:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-einfach-<datum>-<kuerzel>.md" \
-     --format protokoll-einfach \
-     --out-dir "protokolle/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-einfach-<datum>-<kuerzel>.md" --format protokoll-einfach --out-dir "protokolle/"
    ```
+
+   Unter Windows bei Bedarf `python` durch `py -3` ersetzen; auf macOS/Linux
+   `python3` verwenden.
 
    Wenn der Nutzer ausdrücklich Excel verlangt, verwende stattdessen die
    offizielle QMG-Excel-Vorlage:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-einfach-<datum>-<kuerzel>.md" \
-     --format protokoll-einfach-excel \
-     --out-dir "protokolle/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-einfach-<datum>-<kuerzel>.md" --format protokoll-einfach-excel --out-dir "protokolle/"
    ```
 
 4. Der Renderer schreibt

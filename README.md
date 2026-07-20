@@ -4,10 +4,18 @@ Native Codex plugin for producing EBA-compliant meeting records from raw transcr
 
 ## Install
 
-```bash
+The repository is a public Codex marketplace. In Windows PowerShell:
+
+```powershell
 codex plugin marketplace add BhaveshY/eba-protokoll-codex-plugin
 codex plugin add eba-protokoll@eba-protokoll-codex-plugin
+codex plugin list
 ```
+
+The final command should show
+`eba-protokoll@eba-protokoll-codex-plugin` as `installed, enabled`. Restart the
+Codex desktop app and start a new task after the first installation so the ten
+bundled skills are loaded.
 
 ## Contents
 
@@ -26,8 +34,14 @@ BIM/Excel formats produce XLSX, and continuation workflows additionally keep
 
 ## Prerequisites
 
-- Python 3 available on PATH.
-- Microsoft Word on Windows for the production PDF path. LibreOffice and macOS Pages are supported fallbacks.
+- Current Codex CLI or Codex desktop app with the stable `codex plugin` command.
+- Python 3 available as `python` or `py -3` on Windows. The renderer installs
+  its own Python packages on first use.
+- Microsoft Word on Windows for the production PDF path. LibreOffice is the
+  Windows fallback; macOS Pages is supported for development.
+
+The GitHub verification workflow runs the complete manifest, reference,
+DOCX/XLSX renderer, and no-Markdown-output suite on both Windows and Linux.
 
 ## Development
 
