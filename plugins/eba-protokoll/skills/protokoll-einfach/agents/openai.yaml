@@ -1,0 +1,4 @@
+interface:
+  display_name: "Einfaches Protokoll erstellen"
+  short_description: "EBA-Protokolle ohne Tracking erstellen"
+  default_prompt: "Use $protokoll-einfach to create a simple EBA protocol without tracking."

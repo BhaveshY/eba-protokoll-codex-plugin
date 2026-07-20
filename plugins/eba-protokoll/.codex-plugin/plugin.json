@@ -1,0 +1,39 @@
+{
+  "name": "eba-protokoll",
+  "version": "1.0.0",
+  "description": "Native Codex plugin for generating EBA-compliant meeting records from transcripts with the original QMG templates.",
+  "author": {
+    "name": "Eike Becker_Architekten",
+    "email": "BhaveshYeole@eb-a.de"
+  },
+  "homepage": "https://github.com/BhaveshY/eba-protokoll-codex-plugin",
+  "repository": "https://github.com/BhaveshY/eba-protokoll-codex-plugin",
+  "keywords": [
+    "eba",
+    "protokoll",
+    "transkript",
+    "deepgram",
+    "bauleitung",
+    "planung",
+    "codex",
+    "qmg-024-141"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "EBA Protokoll",
+    "shortDescription": "Create EBA meeting records from transcripts.",
+    "longDescription": "Turn EBA Protokoll App transcripts into QMG-based DOCX, PDF, and XLSX records with native Codex skills for routing, preparation, continuation, extraction, participant resolution, and validation.",
+    "developerName": "Eike Becker_Architekten",
+    "category": "Productivity",
+    "capabilities": [
+      "Document generation",
+      "Transcript processing",
+      "Protocol validation"
+    ],
+    "defaultPrompt": [
+      "Create the correct EBA protocol from this transcript.",
+      "Prepare this transcript and resolve its speakers.",
+      "Validate this EBA protocol before delivery."
+    ]
+  }
+}

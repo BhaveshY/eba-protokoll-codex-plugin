@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "eba-protokoll-cowork",
+      "name": "eba-protokoll",
       "source": {
         "source": "local",
-        "path": "./plugins/eba-protokoll-cowork"
+        "path": "./plugins/eba-protokoll"
       },
       "policy": {
         "installation": "AVAILABLE",

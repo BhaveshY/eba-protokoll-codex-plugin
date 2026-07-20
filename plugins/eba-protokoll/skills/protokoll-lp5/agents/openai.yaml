@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bauleitungsprotokoll LP5"
+  short_description: "Bauleitungsprotokolle mit Tracking"
+  default_prompt: "Use $protokoll-lp5 to create an EBA construction protocol with tracking."

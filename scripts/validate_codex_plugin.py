@@ -72,12 +72,26 @@ def validate_skill_files(skills_dir: Path, errors: list[str]) -> None:
             errors.append(f"{path} has unterminated YAML frontmatter")
             continue
         frontmatter = text[4:end]
-        if not re.search(r"^name:\s*\S+", frontmatter, re.M):
+        name_match = re.search(r"^name:\s*(\S+)", frontmatter, re.M)
+        if not name_match:
             errors.append(f"{path} frontmatter is missing name")
+        elif name_match.group(1) != path.parent.name:
+            errors.append(f"{path} name must match skill directory {path.parent.name!r}")
         if not re.search(r"^description:\s*\S+", frontmatter, re.M):
             errors.append(f"{path} frontmatter is missing description")
+        keys = set(re.findall(r"^([A-Za-z][A-Za-z0-9_-]*):", frontmatter, re.M))
+        if keys != {"name", "description"}:
+            errors.append(f"{path} frontmatter must contain only name and description")
         if "[TODO:" in text:
             errors.append(f"{path} contains [TODO: placeholder")
+        ui_path = path.parent / "agents" / "openai.yaml"
+        if not ui_path.is_file():
+            errors.append(f"{path.parent} is missing native Codex UI metadata at agents/openai.yaml")
+        elif name_match and f"${name_match.group(1)}" not in ui_path.read_text(encoding="utf-8"):
+            errors.append(f"{ui_path} default prompt must mention ${name_match.group(1)}")
+        for resource in re.findall(r"`(\.\./\.\./(?:references|scripts)/[^`]+)`", text):
+            if not (path.parent / resource).resolve().exists():
+                errors.append(f"{path} references missing plugin resource: {resource}")
 
 
 def validate(repo_root: Path, plugin_rel: str) -> list[str]:
@@ -91,6 +105,11 @@ def validate(repo_root: Path, plugin_rel: str) -> list[str]:
         errors.append("plugin.json must contain an object")
         return errors
     reject_todos(manifest, "plugin.json", errors)
+    if plugin_root.name != manifest.get("name"):
+        errors.append("plugin folder name must match plugin.json name")
+    for legacy_dir in ["commands", "agents", ".claude-plugin"]:
+        if (plugin_root / legacy_dir).exists():
+            errors.append(f"unsupported Claude-era plugin directory remains: {legacy_dir}")
     unknown = sorted(set(manifest) - ALLOWED_PLUGIN_KEYS)
     if unknown:
         errors.append(f"plugin.json contains unsupported keys: {', '.join(unknown)}")
@@ -127,6 +146,20 @@ def validate(repo_root: Path, plugin_rel: str) -> list[str]:
         mcp = load_json(mcp_path, errors)
         if not isinstance(mcp, dict) or not isinstance(mcp.get("mcpServers"), dict) or not mcp["mcpServers"]:
             errors.append(f"{mcp_path} must contain a non-empty mcpServers object")
+    forbidden_tokens = [
+        "allowed-tools:", "argument-hint:", "$ARGUMENTS", ".claude-plugin",
+        "eba-protokoll-cowork", "EBA Protokoll Cowork", "Skill-Tool", "Write-Tool",
+    ]
+    text_suffixes = {".md", ".json", ".yaml", ".yml", ".py", ".mjs", ".txt"}
+    for path in plugin_root.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in text_suffixes:
+            continue
+        if path.name == "validate-references.mjs":
+            continue
+        content = path.read_text(encoding="utf-8")
+        for token in forbidden_tokens:
+            if token in content:
+                errors.append(f"{path} contains Claude-only token {token!r}")
     if not isinstance(marketplace, dict):
         errors.append("marketplace.json must contain an object")
         return errors

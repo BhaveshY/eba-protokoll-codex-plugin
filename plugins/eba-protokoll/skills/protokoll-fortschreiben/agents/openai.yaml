@@ -1,0 +1,4 @@
+interface:
+  display_name: "Protokoll fortschreiben"
+  short_description: "Offene Punkte konsistent fortschreiben"
+  default_prompt: "Use $protokoll-fortschreiben to continue this EBA tracking protocol."
