@@ -136,12 +136,12 @@ Schritte:
 
 3. Rufe den Renderer auf:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-gespraechsnotiz-<datum>-<kuerzel>.md" \
-     --format gespraechsnotiz \
-     --out-dir "protokolle/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-gespraechsnotiz-<datum>-<kuerzel>.md" --format gespraechsnotiz --out-dir "protokolle/"
    ```
+
+   Unter Windows bei Bedarf `python` durch `py -3` ersetzen; auf macOS/Linux
+   `python3` verwenden.
 
 4. Der Renderer schreibt
    `protokolle/eba-gespraechsnotiz-<datum>-<kuerzel>.docx` und

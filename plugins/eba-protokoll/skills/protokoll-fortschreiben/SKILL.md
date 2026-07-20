@@ -175,12 +175,12 @@ Schritte:
 
 3. Rufe den Renderer auf:
 
-   ```bash
-   python3 "<plugin-root>/scripts/render_protokoll.py" \
-     "<temp-dir>/eba-protokoll-fortschreibung-<datum>-<projekt>.md" \
-     --format <protokoll-lp1-4|protokoll-lp1-4-excel|protokoll-bim|protokoll-lp5> \
-     --out-dir "protokolle/<projekt>/"
+   ```powershell
+   python "<plugin-root>/scripts/render_protokoll.py" "<temp-dir>/eba-protokoll-fortschreibung-<datum>-<projekt>.md" --format <protokoll-lp1-4|protokoll-lp1-4-excel|protokoll-bim|protokoll-lp5> --out-dir "protokolle/<projekt>/"
    ```
+
+   Unter Windows bei Bedarf `python` durch `py -3` ersetzen; auf macOS/Linux
+   `python3` verwenden.
 
 4. Wähle den `--format`-Wert aus dem bestehenden Projekt-State bzw. dem
    erkannten Protokolltyp, damit die passende QMG-Tracking-Vorlage genutzt wird.

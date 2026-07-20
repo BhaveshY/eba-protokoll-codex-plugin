@@ -23,6 +23,10 @@ function expectFile(relativePath) {
   expect(existsSync(join(repoRoot, relativePath)), `${relativePath} exists`);
 }
 
+function portablePath(path) {
+  return path.replaceAll("\\", "/");
+}
+
 function textFiles(relativePath) {
   const absolute = join(repoRoot, relativePath);
   const files = [];
@@ -31,7 +35,7 @@ function textFiles(relativePath) {
     if (statSync(child).isDirectory()) {
       files.push(...textFiles(join(relativePath, entry)));
     } else if (/\.(md|json|ya?ml|py|mjs|txt)$/.test(entry)) {
-      files.push(join(relativePath, entry));
+      files.push(portablePath(join(relativePath, entry)));
     }
   }
   return files;
@@ -431,6 +435,10 @@ const forbiddenClaudeTokens = [
   "Skill-Tool",
   "Write-Tool",
 ];
+expect(
+  portablePath("scripts\\validate-references.mjs") === "scripts/validate-references.mjs",
+  "validator normalizes Windows paths before self-exclusion",
+);
 for (const relativePath of textFiles(".")) {
   if (relativePath === "scripts/validate-references.mjs") continue;
   const content = read(relativePath);
