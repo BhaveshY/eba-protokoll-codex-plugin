@@ -102,12 +102,12 @@ Besprechungen werden in jedem neuen Protokoll mit ihrer Historie weitergeführt
 ```
 
 Wenn Projekt-Nr., Projekt-Name, Ort, Datum oder Ersteller im Rohtranskript fehlen,
-die Fallbacks aus `references/categories/metadaten-konvention.md` verwenden.
+die Fallbacks aus `../categories/metadaten-konvention.md` verwenden.
 `Projekt-Nr. = 000` ist dabei ein bewusster Platzhalter und kein Validator-Fehler.
 
 ## Disziplin-/Kategorie-Konvention (D/K)
 
-Standard-Kategorien (projektabhängig erweiterbar — siehe `references/categories/`):
+Standard-Kategorien (projektabhängig erweiterbar — siehe `../categories/`):
 
 | D/K | Bedeutung |
 |-----|-----------|

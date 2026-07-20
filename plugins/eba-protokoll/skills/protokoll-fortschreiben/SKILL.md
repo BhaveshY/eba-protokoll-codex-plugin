@@ -59,6 +59,12 @@ das Schema). Sie enthält:
 - `verteiler`: Master-Verteiler.
 - `firma_kuerzel`: projektspezifische Kürzel-Zuordnungen.
 - `letzte_mangelnummer`: nur bei LP5, die letzte vergebene Mangelnummer.
+- `ausgabeformat`: zuletzt verwendeter Renderer-Wert; er hält insbesondere bei
+  LP1-4 die Wahl zwischen Word- und offizieller Excel-Vorlage stabil.
+
+Bei älteren States ohne `ausgabeformat` leite den Wert aus der Endung von
+`letztes_protokoll` ab (`.xlsx` → `protokoll-lp1-4-excel`, sofern `typ` nicht
+`bim` ist; `.docx` → `protokoll-lp1-4` oder `protokoll-lp5`).
 
 Wenn keine State-Datei vorhanden, aber ein Vorprotokoll existiert: aus dem Vorprotokoll
 heuristisch ableiten und neue State-Datei erzeugen.
@@ -144,6 +150,8 @@ Schreibe die State-Datei neu mit:
 - `firma_kuerzel`: aktualisiert mit ggf. neu hinzugekommenen.
 - `dk_schema`: aktualisiert mit ggf. neu hinzugekommenen Kategorien.
 - `letzte_mangelnummer` (nur LP5): aktualisiert.
+- `ausgabeformat`: unverändert aus dem bisherigen State beziehungsweise aus dem
+  Vorprotokoll abgeleitet.
 
 ### 8. Ausgabe formatgetreu schreiben & Zusammenfassung
 
@@ -170,7 +178,7 @@ Schritte:
    ```bash
    python3 "<plugin-root>/scripts/render_protokoll.py" \
      "<temp-dir>/eba-protokoll-fortschreibung-<datum>-<projekt>.md" \
-     --format <protokoll-lp1-4|protokoll-bim|protokoll-lp5> \
+     --format <protokoll-lp1-4|protokoll-lp1-4-excel|protokoll-bim|protokoll-lp5> \
      --out-dir "protokolle/<projekt>/"
    ```
 

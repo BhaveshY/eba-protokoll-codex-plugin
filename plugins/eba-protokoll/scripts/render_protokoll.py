@@ -428,7 +428,13 @@ def _first_rpr(p):
 
 def _set_tc_text(tc, text: str) -> None:
     """Replace visible text in a template table cell while keeping cell and
-    paragraph formatting. This avoids flattening the QMG grid styling."""
+    paragraph formatting. This avoids flattening the QMG grid styling.
+
+    The QMG headers use REF fields whose targets are bookmarks embedded in
+    several of these cells. Keep the bookmark boundaries around the new text;
+    deleting them makes Word/LibreOffice render "Reference source not found"
+    in continuation-page headers.
+    """
     text = _strip_md_inline(text or "")
     tc_el = getattr(tc, "_tc", tc)
     paragraphs = tc_el.findall(qn("w:p"))
@@ -437,6 +443,18 @@ def _set_tc_text(tc, text: str) -> None:
         tc_el.append(paragraphs[0])
     p = paragraphs[0]
     rpr_template = _first_rpr(p)
+    bookmark_starts = [
+        deepcopy(child)
+        for paragraph in paragraphs
+        for child in paragraph
+        if child.tag == qn("w:bookmarkStart")
+    ]
+    bookmark_ends = [
+        deepcopy(child)
+        for paragraph in paragraphs
+        for child in paragraph
+        if child.tag == qn("w:bookmarkEnd")
+    ]
     ppr = p.find(qn("w:pPr"))
     for child in list(p):
         if child is not ppr:
@@ -456,7 +474,11 @@ def _set_tc_text(tc, text: str) -> None:
             t.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
         t.text = part
         r.append(t)
+    for bookmark in bookmark_starts:
+        p.append(bookmark)
     p.append(r)
+    for bookmark in bookmark_ends:
+        p.append(bookmark)
 
 
 def _replace_visible_text(element, replacements: dict[str, str]) -> None:
@@ -467,6 +489,38 @@ def _replace_visible_text(element, replacements: dict[str, str]) -> None:
         for old, new in replacements.items():
             new_text = new_text.replace(old, new)
         text_node.text = new_text
+
+
+def _prepare_qmg_fields(doc) -> None:
+    """Make copied QMG header/footer fields portable and refreshable.
+
+    One source template stores the PrjNr REF switch before its bookmark name,
+    which Word accepts but LibreOffice does not. SECTIONPAGES is also cached
+    against the untrimmed multi-section source document. The rendered files
+    have one section, so NUMPAGES is the equivalent field and yields the real
+    output page total in both converters.
+    """
+    for part in doc.part.related_parts.values():
+        if not (
+            part.partname.startswith("/word/header")
+            or part.partname.startswith("/word/footer")
+        ):
+            continue
+        for instruction in part._element.iter(qn("w:instrText")):
+            value = instruction.text or ""
+            value = re.sub(
+                r"(\bREF\s+)\\\*\s+CHARFORMAT\s+([A-Za-z0-9_]+)",
+                r"\1\2 \\* CHARFORMAT",
+                value,
+            )
+            instruction.text = value.replace("SECTIONPAGES", "NUMPAGES")
+
+    settings = doc.settings._element
+    update_fields = settings.find(qn("w:updateFields"))
+    if update_fields is None:
+        update_fields = OxmlElement("w:updateFields")
+        settings.append(update_fields)
+    update_fields.set(qn("w:val"), "true")
 
 
 def _delete_rows_after(table, keep_last_index: int) -> None:
@@ -630,6 +684,7 @@ def _render_simple_word_template(
     for part in doc.part.related_parts.values():
         if part.partname.startswith("/word/header") or part.partname.startswith("/word/footer"):
             _replace_visible_text(part._element, replacements)
+    _prepare_qmg_fields(doc)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(out_path))
@@ -823,6 +878,7 @@ def _render_tracking_template(parsed: ParsedMd, out_path: Path) -> None:
     for part in doc.part.related_parts.values():
         if part.partname.startswith("/word/header") or part.partname.startswith("/word/footer"):
             _replace_visible_text(part._element, replacements)
+    _prepare_qmg_fields(doc)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(out_path))

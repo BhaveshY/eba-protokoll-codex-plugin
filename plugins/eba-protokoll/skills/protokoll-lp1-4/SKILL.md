@@ -202,9 +202,20 @@ Schritte:
    Für BIM-Koordinationen `--format protokoll-bim` verwenden; das ist ein
    Excel-Ursprungsformat und schreibt nur `.xlsx`.
 
+   Wenn der Nutzer für ein reguläres LP1-4-Protokoll ausdrücklich die
+   QMG-Excel-Variante verlangt, verwende:
+
+   ```bash
+   python3 "<plugin-root>/scripts/render_protokoll.py" \
+     "<temp-dir>/eba-protokoll-lp1-4-<datum>-<projekt>.md" \
+     --format protokoll-lp1-4-excel \
+     --out-dir "protokolle/<projekt>/"
+   ```
+
 4. Der Renderer schreibt
-   bei `protokoll-lp1-4` die `.docx` und `.pdf`, bei `protokoll-bim` die
-   `.xlsx`, und löscht das MD-Zwischenformat. Wenn der Renderer für ein
+   bei `protokoll-lp1-4` die `.docx` und `.pdf`, bei `protokoll-bim` und
+   `protokoll-lp1-4-excel` ausschließlich `.xlsx`, und löscht das
+   MD-Zwischenformat. Wenn der Renderer für ein
    Word-Ursprungsformat einen Windows-PDF-Fehler meldet, stderr lesen,
    denselben Befehl nach der automatischen Selbstheilung erneut versuchen und
    erst danach echte Blocker melden.
@@ -230,6 +241,8 @@ Aktualisiere die State-Datei `protokolle/<projekt>/protokoll-state.json` (siehe
 - `offene_punkte`: alle Themen mit `Status = O` zur Übernahme in das nächste Protokoll.
 - `verteiler`: Master-Verteilerliste.
 - `firma_kuerzel`: projektspezifische Firma- und Personen-KZ-Zuordnungen.
+- `ausgabeformat`: der verwendete Renderer-Wert, damit Folgeprotokolle dieselbe
+  Word- oder Excel-QMG-Vorlage weiterverwenden.
 
 ### 11. Zusammenfassung an den Nutzer
 
@@ -250,8 +263,8 @@ Wenn das Transkript ein BIM-Koordinations-JF ist (siehe Auto-Erkennung in der
   8 Sonstiges).
 - Spalte `ausblenden = x` für erledigte Themen (wird in Markdown nicht dargestellt,
   aber im State-File getrackt).
-- Beispielpaar: `references/examples/beispiel-transkript-bim.txt` und
-  `references/examples/beispiel-ausgabe-bim.md`.
+- Beispielpaar: `../../references/examples/beispiel-transkript-bim.txt` und
+  `../../references/examples/beispiel-ausgabe-bim.md`.
 
 ## Anti-Pattern
 

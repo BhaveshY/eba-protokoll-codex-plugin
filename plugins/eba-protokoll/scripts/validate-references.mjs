@@ -310,6 +310,13 @@ expect(
   "renderer opens official QMG DOCX/XLSX templates before filling content",
 );
 expect(
+  renderer.includes('qn("w:bookmarkStart")') &&
+    renderer.includes('qn("w:bookmarkEnd")') &&
+    renderer.includes("def _prepare_qmg_fields") &&
+    renderer.includes('replace("SECTIONPAGES", "NUMPAGES")'),
+  "renderer preserves QMG REF bookmarks and refreshes portable page fields",
+);
+expect(
   renderer.includes("pdf_path.unlink()") &&
     renderer.includes("DispatchEx(\"Word.Application\")") &&
     renderer.includes("AddToRecentFiles=False"),
@@ -347,12 +354,24 @@ for (const skillRel of [
 }
 
 for (const skillRel of [
+  "skills/protokoll-einfach/SKILL.md",
   "skills/protokoll-lp1-4/SKILL.md",
   "skills/protokoll-fortschreiben/SKILL.md",
 ]) {
   const skill = read(skillRel);
   expect(skill.includes("XLSX"), `${skillRel} documents tracking XLSX output`);
 }
+expect(
+  read("skills/protokoll-einfach/SKILL.md").includes("--format protokoll-einfach-excel") &&
+    read("skills/protokoll-lp1-4/SKILL.md").includes("--format protokoll-lp1-4-excel") &&
+    read("skills/protokoll-fortschreiben/SKILL.md").includes("protokoll-lp1-4-excel"),
+  "skills expose both official QMG Excel variants and preserve Excel on continuation",
+);
+expect(
+  read("references/workflows/protokoll-state.md").includes('"ausgabeformat"') &&
+    read("references/workflows/protokoll-state.md").includes("protokoll-lp1-4-excel"),
+  "tracking state persists the exact Word/Excel renderer format",
+);
 
 const pluginManifest = JSON.parse(read(".codex-plugin/plugin.json"));
 expect(pluginManifest.version === "1.0.0", "plugin.json uses the native Codex 1.0.0 release");

@@ -21,6 +21,9 @@ gesamte Vorprotokoll geparst werden muss.
   // Welche Vorlage wird benutzt? Beeinflusst das D/K-Schema.
   "typ": "lp1-4" | "lp5" | "bim",
 
+  // Exakter Renderer-Wert; bewahrt Word-/Excel-Wahl bei Folgeprotokollen.
+  "ausgabeformat": "protokoll-lp1-4" | "protokoll-lp1-4-excel" | "protokoll-lp5" | "protokoll-bim",
+
   // Höchste bisher vergebene Besprechungsnummer (B).
   "letzte_besprechung_nr": 11,
 
@@ -110,6 +113,9 @@ Bei Konflikten (z.B. wenn der Nutzer das State-File manuell editiert hat) gilt:
 - Wenn die Skill einen Eintrag ändert, den der Nutzer in der Zwischenzeit angepasst hat,
   einen Hinweis in den Output für den Nutzer aufnehmen: „Achtung: `offene_punkte[3]`
   wurde gegenüber dem letzten State manuell verändert."
+
+Bei einem älteren State ohne `ausgabeformat` den Wert einmalig aus `typ` und der
+Dateiendung von `letztes_protokoll` ableiten und beim nächsten Schreiben ergänzen.
 
 ## Lokation
 

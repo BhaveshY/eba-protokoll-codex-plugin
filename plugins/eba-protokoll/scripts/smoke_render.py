@@ -4,14 +4,16 @@
 Developer test dependencies:
     python3 -m pip install -r scripts/requirements.txt
 
-This test intentionally uses --no-pdf so it is independent of Word,
-LibreOffice, or Pages. PDF conversion is environment-dependent; DOCX/XLSX
-template preservation is the renderer contract this script locks down. End
-users do not run this; render_protokoll.py bootstraps its own dependencies.
+The core matrix uses --no-pdf so it remains independent of Word, LibreOffice,
+or Pages. When LibreOffice, pdfinfo, and pdftotext are available, an additional
+multi-page regression verifies header references and page totals in real PDFs.
+End users do not run this; render_protokoll.py bootstraps its own dependencies.
 """
 
 from __future__ import annotations
 
+from collections import Counter
+import re
 import shutil
 import subprocess
 import sys
@@ -49,6 +51,18 @@ DOCX_TEMPLATE_BY_EXAMPLE = {
         "references/templates/qmg/QMG-024-141_ORG-PK-LP5-MA_230202-B.docx",
 }
 QMG_TEMPLATE_EXAMPLES = set(DOCX_TEMPLATE_BY_EXAMPLE)
+HEADER_REF_TARGETS_BY_EXAMPLE = {
+    "references/examples/beispiel-ausgabe-gespraechsnotiz.md":
+        {"PrjNr", "PrjName", "Name", "DokBeschr"},
+    "references/examples/beispiel-ausgabe-eba-interview.md":
+        {"PrjNr", "PrjName", "Name", "DokBeschr"},
+    "references/examples/beispiel-ausgabe-einfach.md":
+        {"PrjNr", "PrjName", "Name", "DokBeschr"},
+    "references/examples/beispiel-ausgabe-lp1-4.md":
+        {"PrjNr", "PrjName", "Besprechung"},
+    "references/examples/beispiel-ausgabe-lp5.md":
+        {"PrjNr", "PrjName", "Besprechung"},
+}
 SIMPLE_XLSX_TEMPLATE = REPO_ROOT / "references/templates/qmg/QMG-024-141_ORG-PK-LP1-4-EXCEL-MA_240920-A.xlsx"
 TRACKING_XLSX_TEMPLATE = REPO_ROOT / "references/templates/qmg/QMG-024-141_ORG-PK-EXCEL-MA_240926-C.xlsx"
 TRACKING_XLSX_EXAMPLES = {
@@ -165,6 +179,35 @@ def docx_core_metadata(z: ZipFile) -> dict[str, str]:
             "Application",
         ),
     }
+
+
+def docx_bookmark_boundaries(z: ZipFile) -> tuple[list[tuple[str, str]], list[str]]:
+    document = ET.fromstring(z.read("word/document.xml"))
+    starts = [
+        (
+            node.attrib.get(f"{{{W_NS['w']}}}name", ""),
+            node.attrib.get(f"{{{W_NS['w']}}}id", ""),
+        )
+        for node in document.findall(".//w:bookmarkStart", W_NS)
+    ]
+    ends = [
+        node.attrib.get(f"{{{W_NS['w']}}}id", "")
+        for node in document.findall(".//w:bookmarkEnd", W_NS)
+    ]
+    return starts, ends
+
+
+def docx_header_ref_targets(z: ZipFile) -> set[str]:
+    targets: set[str] = set()
+    for name in z.namelist():
+        if not name.startswith("word/header") or not name.endswith(".xml"):
+            continue
+        root = ET.fromstring(z.read(name))
+        for instruction in root.findall(".//w:instrText", W_NS):
+            match = re.search(r"\bREF\s+([A-Za-z0-9_]+)", instruction.text or "")
+            if match:
+                targets.add(match.group(1))
+    return targets
 
 
 def _column_widths(ws) -> dict[str, float | None]:
@@ -358,8 +401,37 @@ def qmg_template_checks(path: Path, example: str) -> list[str]:
         footer_text = "\n".join(z.read(name).decode("utf-8", "ignore") for name in footers)
         if "Eike Becker_Architekten" not in header_text and "Eike Becker_Architekten" not in footer_text:
             failures.append(f"{example}: EBA header/footer branding missing")
-        if "PAGE" not in footer_text or "SECTIONPAGES" not in footer_text:
+        if "PAGE" not in footer_text or "NUMPAGES" not in footer_text:
             failures.append(f"{example}: page number fields missing from footer")
+        if "SECTIONPAGES" in footer_text:
+            failures.append(f"{example}: stale source-template SECTIONPAGES field remains")
+        if re.search(r"REF\s+\\\*\s+CHARFORMAT\s+PrjNr", header_text):
+            failures.append(f"{example}: malformed source-template PrjNr REF field remains")
+
+        starts, ends = docx_bookmark_boundaries(z)
+        bookmark_names = [name for name, _ in starts]
+        start_ids = [bookmark_id for _, bookmark_id in starts]
+        expected_targets = HEADER_REF_TARGETS_BY_EXAMPLE[example]
+        actual_targets = docx_header_ref_targets(z)
+        if actual_targets != expected_targets:
+            failures.append(
+                f"{example}: expected header REF targets {sorted(expected_targets)}, "
+                f"got {sorted(actual_targets)}"
+            )
+        missing_bookmarks = expected_targets - set(bookmark_names)
+        if missing_bookmarks:
+            failures.append(
+                f"{example}: header REF bookmark targets missing: {sorted(missing_bookmarks)}"
+            )
+        if any(count != 1 for count in Counter(bookmark_names).values()):
+            failures.append(f"{example}: duplicate bookmark names in rendered DOCX")
+        if any(count != 1 for count in Counter(start_ids).values()):
+            failures.append(f"{example}: duplicate bookmark start IDs in rendered DOCX")
+        if Counter(start_ids) != Counter(ends):
+            failures.append(f"{example}: bookmark start/end boundaries do not match")
+        settings_text = z.read("word/settings.xml").decode("utf-8", "ignore")
+        if "updateFields" not in settings_text:
+            failures.append(f"{example}: rendered DOCX does not request field refresh")
 
         if docx_relationship_targets(z) != docx_relationship_targets(template_z):
             failures.append(f"{example}: DOCX template header/footer/style relationships changed")
@@ -609,6 +681,87 @@ def removed_debug_flags_rejected() -> list[str]:
     return failures
 
 
+def libreoffice_pdf_regression_checks() -> list[str]:
+    """Exercise the portable PDF path when its local toolchain is available."""
+    converter = shutil.which("soffice") or shutil.which("libreoffice")
+    pdftotext = shutil.which("pdftotext")
+    pdfinfo = shutil.which("pdfinfo")
+    if not converter or not pdftotext or not pdfinfo:
+        return []
+
+    failures: list[str] = []
+    cases = [
+        "references/examples/beispiel-ausgabe-einfach.md",
+        "references/examples/beispiel-ausgabe-lp1-4.md",
+    ]
+    for example in cases:
+        src = REPO_ROOT / example
+        with tempfile.TemporaryDirectory(prefix="eba-render-pdf-regression-") as tmp:
+            tmp_path = Path(tmp)
+            md_path = tmp_path / src.name
+            out_dir = tmp_path / "out"
+            shutil.copy2(src, md_path)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RENDERER),
+                    str(md_path),
+                    "--out-dir",
+                    str(out_dir),
+                ],
+                cwd=str(REPO_ROOT),
+                text=True,
+                capture_output=True,
+                timeout=240,
+            )
+            label = f"{example} LibreOffice PDF"
+            if result.returncode != 0:
+                failures.append(
+                    f"{label}: renderer exited {result.returncode}: {result.stderr.strip()}"
+                )
+                continue
+            failures.extend(
+                output_contract_checks(out_dir, result.stdout, {".docx", ".pdf"}, label)
+            )
+            pdf_path = out_dir / f"{md_path.stem}.pdf"
+            if not pdf_path.exists():
+                failures.append(f"{label}: PDF was not written")
+                continue
+            info = subprocess.run(
+                [pdfinfo, str(pdf_path)],
+                text=True,
+                capture_output=True,
+                timeout=30,
+                check=False,
+            )
+            page_match = re.search(r"^Pages:\s+(\d+)$", info.stdout, re.MULTILINE)
+            if info.returncode != 0 or not page_match:
+                failures.append(f"{label}: could not determine PDF page count")
+                continue
+            page_count = int(page_match.group(1))
+            if page_count < 2:
+                failures.append(f"{label}: regression fixture did not produce multiple pages")
+
+            extracted = subprocess.run(
+                [pdftotext, "-layout", str(pdf_path), "-"],
+                text=True,
+                capture_output=True,
+                timeout=30,
+                check=False,
+            )
+            if extracted.returncode != 0:
+                failures.append(f"{label}: pdftotext failed")
+                continue
+            pdf_text = extracted.stdout
+            if "Reference source not found" in pdf_text or "Error:" in pdf_text:
+                failures.append(f"{label}: broken template field is visible in PDF")
+            for page_number in range(1, page_count + 1):
+                marker = f"{page_number}_{page_count}"
+                if marker not in pdf_text:
+                    failures.append(f"{label}: expected page marker {marker!r} is missing")
+    return failures
+
+
 def main() -> int:
     checks = {
         "references/examples/beispiel-ausgabe-gespraechsnotiz.md": [
@@ -654,6 +807,7 @@ def main() -> int:
     failures.extend(unknown_format_rejected())
     failures.extend(paths_with_spaces_supported())
     failures.extend(removed_debug_flags_rejected())
+    failures.extend(libreoffice_pdf_regression_checks())
 
     if failures:
         print(f"Render smoke test failed with {len(failures)} issue(s):")

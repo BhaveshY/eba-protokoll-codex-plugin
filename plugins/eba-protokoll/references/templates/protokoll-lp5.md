@@ -102,7 +102,7 @@ Wichtigstes Merkmal: **Fortgeschriebenes Tracking** — siehe
 ```
 
 Wenn Projekt-Nr., Projekt-Name, Ort, Datum oder Ersteller im Rohtranskript fehlen,
-die Fallbacks aus `references/categories/metadaten-konvention.md` verwenden.
+die Fallbacks aus `../categories/metadaten-konvention.md` verwenden.
 `Projekt-Nr. = 000` ist dabei ein bewusster Platzhalter und kein Validator-Fehler.
 
 ## LP5-spezifische Kategorien

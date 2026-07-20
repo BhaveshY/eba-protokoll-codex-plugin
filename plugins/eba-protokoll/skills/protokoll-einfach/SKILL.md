@@ -4,15 +4,18 @@ description: >-
   Use when the user asks for a "Protokoll einfach", "einfaches Protokoll",
   "Protokoll ohne Tracking", "Workshop-Protokoll ohne D/K", "Kick-Off Notiz",
   or "simple meeting protocol with deadlines but no tracking". Produces the EBA
-  QMG-024-141 ORG-PK-LP1-4-MA Word format (Stand A): hierarchical theme
-  numbering (Thema 01.1), combined "Zuständig / Frist" column, 3-day notice
-  period, no status column, no D/K|B|LN scheme.
+  QMG-024-141 ORG-PK-LP1-4-MA Word format (Stand A), or its official Excel
+  variant when the user explicitly requests Excel: hierarchical theme numbering
+  (Thema 01.1), combined "Zuständig / Frist" column, 3-day notice period, no
+  status column, no D/K|B|LN scheme.
 ---
 
 # Einfaches Protokoll erstellen
 
-Erstellt ein Protokoll im EBA-Format `QMG-024-141 ORG-PK-LP1-4-MA` (Stand A,
-Word-Variante). Dieses Format liegt **zwischen** Gesprächsnotiz und voller
+Erstellt standardmäßig ein Protokoll im EBA-Format
+`QMG-024-141 ORG-PK-LP1-4-MA` (Stand A, Word-Variante). Wenn der Nutzer
+ausdrücklich Excel verlangt, wird die offizielle QMG-Excel-Variante verwendet.
+Dieses Format liegt **zwischen** Gesprächsnotiz und voller
 LP1-4-Tracking: hierarchische Themen mit Frist-Spalte, aber **ohne** D/K|B|LN-Schema
 und **ohne** Status.
 
@@ -101,9 +104,10 @@ Pro erkanntem Themenblock eine Zeile (oder Hauptzeile + Unterzeilen mit Hierarch
 
 Bei Unterthemen: `Thema 01`, `Thema 01.1`, `Thema 01.2`, `Thema 02`, …
 
-### 6. Ausgabe als DOCX + PDF schreiben
+### 6. Ausgabe in der passenden QMG-Vorlage schreiben
 
-**Endformat**: DOCX + PDF. **Kein Markdown** im Projekt-Ordner.
+**Endformat**: standardmäßig DOCX + PDF; bei ausdrücklichem Excel-Wunsch XLSX.
+**Kein Markdown** im Projekt-Ordner.
 Auf Windows 11 mit MS Word bootstrapt der Renderer fehlende Python-Pakete
 selbst und exportiert die PDF via Word. Keine technischen Setup-Fragen an den
 Nutzer.
@@ -131,10 +135,21 @@ Schritte:
      --out-dir "protokolle/"
    ```
 
+   Wenn der Nutzer ausdrücklich Excel verlangt, verwende stattdessen die
+   offizielle QMG-Excel-Vorlage:
+
+   ```bash
+   python3 "<plugin-root>/scripts/render_protokoll.py" \
+     "<temp-dir>/eba-protokoll-einfach-<datum>-<kuerzel>.md" \
+     --format protokoll-einfach-excel \
+     --out-dir "protokolle/"
+   ```
+
 4. Der Renderer schreibt
-   `protokolle/eba-protokoll-einfach-<datum>-<kuerzel>.docx` und
-   `protokolle/eba-protokoll-einfach-<datum>-<kuerzel>.pdf`, und löscht das
-   MD-Zwischenformat. Wenn der Renderer einen Windows-PDF-Fehler meldet,
+   bei `protokoll-einfach` `.docx` und `.pdf`, bei
+   `protokoll-einfach-excel` ausschließlich `.xlsx`, und löscht das
+   MD-Zwischenformat. Wenn der Renderer für die Word-Variante einen
+   Windows-PDF-Fehler meldet,
    stderr lesen, denselben Befehl nach der automatischen Selbstheilung erneut
    versuchen und erst danach echte Blocker melden.
 
@@ -149,7 +164,7 @@ Volle Pipeline-Beschreibung:
 
 Nach dem Schreiben kurz mitteilen:
 
-- Pfade zu DOCX und PDF.
+- Pfade zu DOCX/PDF beziehungsweise XLSX.
 - Anzahl der erkannten Teilnehmer.
 - Anzahl der Themen (mit Aufschlüsselung Hauptthemen / Unterpunkte).
 - Anzahl von Aufgaben mit konkreter Frist.
